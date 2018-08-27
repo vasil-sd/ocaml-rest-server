@@ -1,0 +1,13 @@
+(jbuild_version 1)
+
+(library
+ ((libraries
+    (httpaf
+     httpaf-async
+     async
+     core
+     yojson))
+  (modules (rest_server api http_json rest_path))
+  (flags (:standard -w -39))
+  (name rest_server)
+  (public_name rest_server)))
