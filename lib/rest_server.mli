@@ -7,7 +7,7 @@ module Path : sig
 
   type t
 
-  val convert : Core.String.t -> t
+  val from_string : Core.String.t -> t
 
   val match_path : t -> t -> Var.vars option
 end
@@ -21,21 +21,26 @@ module Http_json : sig
 
   val response_ok : 'a Httpaf.Reqd.t -> unit
 
-  val http_send_json_response :
+  val response_json :
     'a Httpaf.Reqd.t -> Yojson.Safe.json -> unit
 
-  val http_receive_json_request :
+  val request_json :
        'a Httpaf.Reqd.t
-    -> Httpaf.Request.t
-    -> (   'a Httpaf.Reqd.t
-        -> Httpaf.Request.t
-        -> Yojson.Safe.json
-        -> unit)
+    -> ('a Httpaf.Reqd.t -> Yojson.Safe.json -> unit)
     -> unit
 end
 
 module Api : sig
-  exception Path_Conflict
+  type response =
+    { response_error:
+           ?error:Httpaf.Status.standard
+        -> ?text:string
+        -> unit
+        -> unit
+    ; response_ok: unit -> unit
+    ; response_json: Yojson.Safe.json -> unit
+    ; get_path_var: Core.String.t -> Core.String.t option
+    }
 
   type 'a handlers
 
@@ -44,49 +49,33 @@ module Api : sig
   val register :
        Httpaf.Method.t
     -> Core.String.t
-    -> (   'a Httpaf.Reqd.t
-        -> Httpaf.Request.t
-        -> Path.Var.vars
-        -> unit)
+    -> ('a Httpaf.Reqd.t -> Path.Var.vars -> unit)
     -> 'a handlers
     -> 'a handlers
 
   val get :
        Core.String.t
-    -> (   'a Httpaf.Reqd.t
-        -> Httpaf.Request.t
-        -> Path.Var.vars
-        -> unit)
+    -> (response -> unit)
     -> 'a handlers
     -> 'a handlers
 
   val put :
        Core.String.t
-    -> (   'a Httpaf.Reqd.t
-        -> Httpaf.Request.t
-        -> Path.Var.vars
-        -> unit)
+    -> (response -> Yojson.Safe.json -> unit)
     -> 'a handlers
     -> 'a handlers
 
   val post :
        Core.String.t
-    -> (   'a Httpaf.Reqd.t
-        -> Httpaf.Request.t
-        -> Path.Var.vars
-        -> unit)
+    -> (response -> Yojson.Safe.json -> unit)
     -> 'a handlers
     -> 'a handlers
 
   val delete :
        Core.String.t
-    -> (   'a Httpaf.Reqd.t
-        -> Httpaf.Request.t
-        -> Path.Var.vars
-        -> unit)
+    -> (response -> unit)
     -> 'a handlers
     -> 'a handlers
-
 end
 
 val main : Async.Fd.t Api.handlers -> unit
