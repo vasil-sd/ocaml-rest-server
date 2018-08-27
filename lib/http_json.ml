@@ -27,7 +27,7 @@ let response_error
 
 let response_ok reqd = response_error ~error:`OK reqd
 
-let http_send_json_response reqd json =
+let response_json reqd json =
   let response =
     Response.create
       ~headers:
@@ -52,8 +52,8 @@ let http_send_json_response reqd json =
   |> Yojson.Safe.to_output output_substr ;
   Body.close_writer response_body
 
-let http_receive_json_request reqd req
-    handler =
+let request_json reqd handler =
+  let req = Reqd.request reqd in
   match
     Headers.get req.Request.headers
       "content-type"
@@ -73,7 +73,7 @@ let http_receive_json_request reqd req
         try
           Buffer.contents buffer
           |> Yojson.Safe.from_string
-          |> handler reqd req
+          |> handler reqd
         with _ ->
           response_error
             ~error:`Unsupported_media_type
@@ -89,3 +89,4 @@ let http_receive_json_request reqd req
           "Only application/json MIME type \
            is supported"
         reqd
+

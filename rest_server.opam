@@ -1,4 +1,4 @@
-version: "0.0.1"
+version: "0.0.2"
 opam-version: "1.2"
 maintainer: "Vasil Dyadov <vasil.s.d@gmail.com>"
 authors: [ "Vasil Daydov <vasil.s.d@gmail.com>" ]
