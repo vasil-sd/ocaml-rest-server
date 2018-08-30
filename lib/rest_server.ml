@@ -6,6 +6,8 @@ module Path = Rest_path
 module Http_json = Http_json
 module Api = Api
 
+module Swagger = Swagger
+
 let main handlers =
   let error_handler _ ?request error
       start_response =
@@ -57,3 +59,31 @@ let main handlers =
              "int Maximum accepts per batch")
     start
   |> Command.run
+
+let (>?) o v =
+  match o with
+  | None -> v
+  | Some v -> v
+
+let of_swagger swagger hs =
+  let open Swagger in
+  let base_path = swagger.base_path >? "" in
+  let paths = swagger.paths in
+  let process_path_item (path, path_item) =
+    List.fold_left
+    ~f:(fun acc (meth, op) -> 
+        match op with
+        | None -> acc
+        | Some op -> Api.register_any meth (base_path ^ path) op.handler acc)
+    ~init:Api.empty
+    [(`GET, path_item.get);
+     (`PUT, path_item.put);
+     (`POST, path_item.post);
+     (`DELETE, path_item.delete)]
+  in
+  List.map ~f:process_path_item paths
+  |> List.fold_left ~f:Api.append ~init:hs
+  |> Api.get (base_path ^ "/swagger.json")
+             (Api.Without_request
+               (fun {Api.response_ok;_ } -> 
+                 response_ok ~text:(string_of_swagger swagger) ()))

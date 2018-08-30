@@ -1,4 +1,4 @@
-version: "0.0.2"
+version: "0.0.3"
 opam-version: "1.2"
 maintainer: "Vasil Dyadov <vasil.s.d@gmail.com>"
 authors: [ "Vasil Daydov <vasil.s.d@gmail.com>" ]
@@ -18,5 +18,6 @@ depends: [
   "async" {>= "v0.9.0"}
   "core" {>= "v0.9"}
   "yojson" {>= "1.4.1"}
+  "atdgen" {>= "2.0.0"}
 ]
 available: [ ocaml-version >= "4.03.0" ]

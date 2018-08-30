@@ -25,7 +25,7 @@ let response_error
     | Some text -> text ) ;
   Body.close_writer response_body
 
-let response_ok reqd = response_error ~error:`OK reqd
+let response_ok ?text reqd = response_error ?text ~error:`OK reqd
 
 let response_json reqd json =
   let response =
