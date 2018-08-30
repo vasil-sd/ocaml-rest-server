@@ -1,13 +1,43 @@
 (jbuild_version 1)
 
+(rule
+ ((targets (swagger_j.ml swagger_j.mli))
+  (deps    (swagger.atd))
+  (action  (run atdgen -ntd -j ${<}))))
+
+(rule
+ ((targets (swagger_t.ml swagger_t.mli))
+  (deps    (swagger.atd))
+  (action  (run atdgen -t ${<}))))
+
+(rule
+ ((targets (swagger_v.ml swagger_v.mli))
+  (deps    (swagger.atd))
+  (action  (run atdgen -ntd -v ${<}))))
+
+(rule
+  ((targets (swagger.mli))
+   (deps (swagger_v.mli swagger_j.mli swagger_t.mli))
+   (action (with-stdout-to ${@}
+             (run cat swagger_t.mli swagger_j.mli swagger_v.mli)))))
+
+(rule
+  ((targets (swagger.ml))
+   (deps (swagger_v.ml
+          swagger_j.ml
+          swagger_t.ml))
+   (action (with-stdout-to ${@}
+             (run cat swagger_t.ml swagger_j.ml swagger_v.ml)))))
+
 (library
  ((libraries
     (httpaf
      httpaf-async
      async
      core
-     yojson))
-  (modules (rest_server api http_json rest_path))
+     yojson
+     atdgen))
+  (modules (rest_server api http_json rest_path swagger))
   (flags (:standard -w -39))
   (name rest_server)
   (public_name rest_server)))
