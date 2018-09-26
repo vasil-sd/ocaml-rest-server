@@ -43,7 +43,7 @@ let put_item {RA.get_path_var; response_error; response_ok;_} json =
  let name = get_path_var "name" in
  match name with
  | None -> response_error ~text:"Parameter name is not defined!" ()
- | Some name -> add_item name json
+ | Some name -> add_item name json; response_ok ()
 
 let del_item {RA.get_path_var; response_ok; response_error;_} =
   let name = get_path_var "name" in
@@ -55,10 +55,10 @@ let () =
   let open Rest_server in
   let open Api in
   empty
-  |> get "/rules" get_items
-  |> post "/rules/{name}" put_item
-  |> get "/rules/{name}" get_item
-  |> delete "/rules/{name}" del_item
+  |> get "/rules" (RA.Without_request get_items)
+  |> post "/rules/{name}" (RA.With_request put_item)
+  |> get "/rules/{name}" (RA.Without_request get_item)
+  |> delete "/rules/{name}" (RA.Without_request del_item)
   |> main
 ```
 
