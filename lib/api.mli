@@ -1,22 +1,29 @@
+type responded
+
 type response =
   { response_error:
          ?error:Httpaf.Status.standard
       -> ?text:string
       -> unit
-      -> unit
-  ; response_ok: ?text:string -> unit -> unit
-  ; response_json: Yojson.Safe.json -> unit
+      -> responded
+  ; response_ok: ?text:string -> unit -> responded
+  ; response_json: Yojson.Safe.json -> responded
   ; get_path_var: Core.String.t -> Core.String.t option }
 
 exception Path_Conflict
 
-type 'a rest_handler = 'a Httpaf.Reqd.t -> Rest_path.Var.vars -> unit
+type 'a rest_handler =
+  'a Httpaf.Reqd.t -> Rest_path.Var.vars -> unit
 
 type _ handler =
-  | Without_request : (response -> unit) -> [`Without_request] handler
-  | With_request : (response -> Yojson.Safe.json -> unit) -> [`With_request] handler
+  | Without_request :
+      (response -> responded)
+      -> [`Without_request] handler
+  | With_request :
+      (response -> Yojson.Safe.json -> responded)
+      -> [`With_request] handler
 
-type any_handler = Handler: 'a handler -> any_handler
+type any_handler = Handler : 'a handler -> any_handler
 
 type 'a handlers
 

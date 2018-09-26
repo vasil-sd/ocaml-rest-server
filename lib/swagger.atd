@@ -201,7 +201,9 @@ type reference = string
 
 type responses = (string * json) list <json repr="object">
 
-type handler = unit wrap <ocaml t="Api.any_handler" wrap="fun _ -> Api.(Handler (Without_request (fun _ -> ())))" unwrap="fun _ -> ()">
+type handler = unit wrap <ocaml t="Api.any_handler"
+                                wrap="fun _ -> Api.(Handler (Without_request (fun {Api.response_ok;_} -> response_ok ())))"
+                                unwrap="fun _ -> ()">
 
 type operation =
   { handler <json name="x-handler"> : handler

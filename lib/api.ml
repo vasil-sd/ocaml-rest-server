@@ -2,31 +2,41 @@ open Core
 open Httpaf
 open Http_json
 
+(**
+   responded is for guarantee that user do not
+   forget to send a response
+*)
+type responded = unit
+
 type response =
   { response_error:
          ?error:Httpaf.Status.standard
       -> ?text:string
       -> unit
-      -> unit
-  ; response_ok: ?text:string -> unit -> unit
-  ; response_json: Yojson.Safe.json -> unit
+      -> responded
+  ; response_ok: ?text:string -> unit -> responded
+  ; response_json: Yojson.Safe.json -> responded
   ; get_path_var: Core.String.t -> Core.String.t option }
 
 exception Path_Conflict
 
-type 'a rest_handler = 'a Httpaf.Reqd.t -> Rest_path.Var.vars -> unit
+type 'a rest_handler =
+  'a Httpaf.Reqd.t -> Rest_path.Var.vars -> unit
 
 type _ handler =
-  | Without_request : (response -> unit) -> [`Without_request] handler
-  | With_request : (response -> Yojson.Safe.json -> unit) -> [`With_request] handler
+  | Without_request :
+      (response -> responded)
+      -> [`Without_request] handler
+  | With_request :
+      (response -> Yojson.Safe.json -> responded)
+      -> [`With_request] handler
 
 type any_handler = Handler : 'a handler -> any_handler
 
 type 'a t =
   { path: Rest_path.t
   ; meth: Httpaf.Method.t
-  ; handler: 'a rest_handler
-  }
+  ; handler: 'a rest_handler }
 
 type 'a handlers = 'a t Core.List.t
 
@@ -55,15 +65,18 @@ let register meth path handler hs =
 let make_response reqd vars =
   let response_error ?error ?text () =
     Http_json.response_error ?error ?text reqd
-  and response_ok ?text () = Http_json.response_ok ?text reqd
+  and response_ok ?text () =
+    Http_json.response_ok ?text reqd
   and response_json json =
     Http_json.response_json reqd json
   and get_path_var v = Rest_path.Var.get vars v in
   {response_error; response_ok; response_json; get_path_var}
 
-let wrap_handler (type t) (handler : t handler) : 'a rest_handler =
+let wrap_handler (type t) (handler : t handler) :
+    'a rest_handler =
   let handler_without_request handler reqd vars =
-    let r = make_response reqd vars in handler r
+    let r = make_response reqd vars in
+    handler r
   in
   let handler_with_request handler reqd vars =
     let r = make_response reqd vars in
