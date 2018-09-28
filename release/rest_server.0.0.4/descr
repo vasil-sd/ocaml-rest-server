@@ -1,0 +1,6 @@
+Simple framework for building RESTfull web-applicatoins.
+
+Rest_server is a libarary with very simple API for building JSON-based RESTfull
+web-application.
+It is based on http/af and yojson.
+Despite its simplicity, I believe, it may useful in many applications.

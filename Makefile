@@ -1,6 +1,7 @@
 .PHONY: all build clean release
 
 release:
+	git push --tags
 	@ TAG=$$(git tag | tail -n 1); \
 	mkdir -p release/rest_server.$$TAG; \
 	cp rest_server.descr release/rest_server.$$TAG/descr; \
